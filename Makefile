@@ -31,7 +31,7 @@ endif
 
 F90_OPTS += $(F90_MOD_DIR_OPT) $(INC_DIR)
 
-PROGRAMS := get_steinhardt_ortho
+PROGRAMS := get_steinhardt_ortho slice_xyz
 
 SRC := potentials.f90 neighbors.f90 analyze.f90
 OBJ := $(addprefix $(BUILD_DIR)/,$(patsubst %.f90,%.o,$(SRC)))
