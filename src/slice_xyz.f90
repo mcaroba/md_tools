@@ -67,7 +67,7 @@ program slice_xyz
     read(10,*, iostat=iostatus) natoms0
     if( iostatus /= 0 )exit
     write(*,*) "Doing frame no. ", i_frame
-    read(10, *) comment_line
+    read(10, '(A)') comment_line
     allocate( pos(1:3, 1:natoms0) )
     allocate( vel(1:3, 1:natoms0) )
     allocate( element(1:natoms0) )
@@ -84,7 +84,7 @@ program slice_xyz
       end if
     end do
     write(20, *) natoms
-    write(20, *) comment_line
+    write(20, *) trim(adjustl(comment_line))
     do i = 1, natoms0
       if( keep_atom(i) )then
         write(20,*) element(i), pos(1:3, i), vel(1:3, i)
