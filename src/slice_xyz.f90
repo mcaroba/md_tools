@@ -64,9 +64,9 @@ program slice_xyz
   i_frame = 0
   do
     i_frame = i_frame + 1
-    write(*,*) "Doing frame no. ", i_frame
     read(10,*, iostat=iostatus) natoms0
     if( iostatus /= 0 )exit
+    write(*,*) "Doing frame no. ", i_frame
     read(10, *) comment_line
     allocate( pos(1:3, 1:natoms0) )
     allocate( vel(1:3, 1:natoms0) )
