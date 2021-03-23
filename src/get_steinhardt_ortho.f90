@@ -11,14 +11,14 @@ program get_steinhardt_ortho
   real*8 :: Lv(1:3), rmax
   integer :: Np, iostatus, i, image, lmax, l, every, counter
   character*1024 :: filename
-  character*64 :: el
+  character*64 :: el, mode = "average"
   real*8, allocatable :: pos(:,:), Ql(:), Qlsum(:)
   integer, allocatable :: nn(:), nn_list(:,:)
   logical :: PBC(1:3)
 
   PBC = .true.
 
-  read(*,*) filename, Lv(1:3), rmax, lmax, every
+  read(*,*) filename, Lv(1:3), rmax, lmax, every, mode
 
   allocate( Ql(0:lmax) )
   allocate( Qlsum(0:lmax) )
@@ -46,6 +46,9 @@ program get_steinhardt_ortho
       do l = 0, lmax
         call get_Ql(pos, Lv, PBC, nn, nn_list, rmax, l, Ql(l))
       end do
+      if( mode == "traj" )then
+        write(*,*) image, Ql(0:lmax)
+      end if
       Qlsum = Qlsum + Ql
       counter = counter + 1
     end if
@@ -53,6 +56,8 @@ program get_steinhardt_ortho
   close(10)
 
   Qlsum = Qlsum / dfloat(counter)
-  write(*,*) Qlsum(0:lmax)
+  if( mode == "average" )then
+    write(*,*) Qlsum(0:lmax)
+  end if
 
 end program
