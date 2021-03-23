@@ -8,19 +8,19 @@ module analyze
 
 
 !**************************************************************************
-  subroutine get_Qlm(pos, Lv, PBC, nn, nn_list, rmax, l, m, Qlm)
+  subroutine get_Qlm(pos, which_atom, Lv, PBC, nn, nn_list, rmax, l, m, Qlm)
 
     implicit none
 
 !   Input variables
     real*8, intent(in) :: pos(:,:), Lv(:), rmax
-    integer, intent(in) :: nn(:), nn_list(:,:), l, m
+    integer, intent(in) :: nn(:), nn_list(:,:), l, m, which_atom
     logical, intent(in) :: PBC(:)
 !   Output variables
     complex*16, intent(out) :: Qlm
 !   Internal variables
     real*8 :: fc, rmin, dist(1:3), d, theta, phi, pi, Ncoord
-    integer :: natoms, i, j, k
+    integer :: natoms, i, j, k, i_beg, i_end
     complex*16 :: sum
 
     natoms = size(nn,1)
@@ -30,8 +30,16 @@ module analyze
 !   Hardcode the soft cutoff
     rmin = 0.9d0*rmax
 
+    if( which_atom == 0 )then
+      i_beg = 1
+      i_end = natoms
+    else
+      i_beg = which_atom
+      i_end = which_atom
+    end if
+
     Qlm = 0.d0
-    do i = 1, natoms
+    do i = i_beg, i_end
       Ncoord = 0.d0
       sum = 0.d0
       do k = 1, nn(i) 
@@ -55,7 +63,7 @@ module analyze
         Qlm = Qlm + sum/6.d0
       end if
     end do
-    Qlm = Qlm/dfloat(natoms)
+    Qlm = Qlm/dfloat(i_end-i_beg+1)
 
 
   end subroutine
@@ -64,13 +72,13 @@ module analyze
 
 
 !**************************************************************************
-  subroutine get_Ql(pos, Lv, PBC, nn, nn_list, rmax, l, Ql)
+  subroutine get_Ql(pos, which_atom, Lv, PBC, nn, nn_list, rmax, l, Ql)
 
     implicit none
 
 !   Input variables
     real*8, intent(in) :: pos(:,:), Lv(:), rmax
-    integer, intent(in) :: nn(:), nn_list(:,:), l
+    integer, intent(in) :: nn(:), nn_list(:,:), l, which_atom
     logical, intent(in) :: PBC(:)
 !   Output variables
     real*8, intent(out) :: Ql
@@ -83,7 +91,7 @@ module analyze
 
     Ql = 0.d0
     do m = -l, l
-      call get_Qlm(pos, Lv, PBC, nn, nn_list, rmax, l, m, Qlm)
+      call get_Qlm(pos, which_atom, Lv, PBC, nn, nn_list, rmax, l, m, Qlm)
       Ql = Ql + realpart(Qlm)**2 + imagpart(Qlm)**2
     end do
     Ql = dsqrt(4.d0*pi/dfloat(2*l+1) * Ql)
