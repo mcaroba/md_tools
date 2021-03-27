@@ -59,8 +59,8 @@ module analyze
         end if
       end do
       if( Ncoord > 0.d0 )then
-!        Qlm = Qlm + sum/Ncoord
-        Qlm = Qlm + sum/6.d0
+        Qlm = Qlm + sum/Ncoord
+!        Qlm = Qlm + sum/6.d0
       end if
     end do
     Qlm = Qlm/dfloat(i_end-i_beg+1)
