@@ -14,7 +14,7 @@ LIB_DIR=lib
 # Edit F90_OPTS, F90_MOD_DIR_OPT and LIBS as required
 #########################################################
 ifeq ($(F90),gfortran)
-F90_OPTS=-fPIC -O3
+F90_OPTS=-fPIC -O3 -fopenmp
 #
 # For debugging:
 #F90_OPTS=-fPIC -O3 -fcheck=bounds -g -fcheck=all -Wall

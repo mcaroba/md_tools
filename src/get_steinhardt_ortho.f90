@@ -25,6 +25,7 @@ program get_steinhardt_ortho
   real*8, allocatable :: pos(:,:), Ql(:,:), Qlsum(:,:)
   integer, allocatable :: nn(:), nn_list(:,:)
   logical :: PBC(1:3)
+  real*8 :: time1, time2
 
   PBC = .true.
 
@@ -53,23 +54,33 @@ program get_steinhardt_ortho
       allocate( nn(1:Np) )
       allocate( nn_list(1:Np, 1:Np) )
     end if
+!call cpu_time(time1)
     do i = 1, Np
       read(10, *, iostat=iostatus) el, pos(1:3, i)
       read(10, *, iostat=iostatus)
       backspace(10)
     end do
+!call cpu_time(time2)
+!write(*,*) "Read: ", time2-time1
     if( mod(image, every) == 0 )then
+!call cpu_time(time1)
       call build_neighbors(pos, Np, Lv, PBC, rmax, nn, nn_list) 
+!call cpu_time(time2)
+!write(*,*) "Neighbors: ", time2-time1
       if( atoms_mode == "all" )then
+!$omp parallel do
         do l = 0, lmax
           call get_Ql(pos, 0, Lv, PBC, nn, nn_list, rmax, l, Ql(l,1))
         end do
+!$omp end parallel do
       else if( atoms_mode == "each" )then
+!$omp parallel do private(l)
         do i = 1, Np
           do l = 0, lmax
             call get_Ql(pos, i, Lv, PBC, nn, nn_list, rmax, l, Ql(l,i))
           end do
         end do
+!$omp end parallel do
       end if
 !     Done for each trajectory frame
       if( trajectory_mode == "each" )then
