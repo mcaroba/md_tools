@@ -8,9 +8,9 @@ program get_steinhardt_ortho
 
   implicit none
 
-  real*8 :: Lv(1:3), rmax
-  integer :: Np, iostatus, i, image, lmax, l, every, counter
-  character*1024 :: filename
+  real*8 :: Lv(1:3), rmax = 0.d0
+  integer :: Np, iostatus, i, image, lmax = 10, l, every = 1, counter
+  character*1024 :: filename = ""
   character*64 :: el
 ! Modes can be:
 !
@@ -26,10 +26,55 @@ program get_steinhardt_ortho
   integer, allocatable :: nn(:), nn_list(:,:)
   logical :: PBC(1:3)
   real*8 :: time1, time2
+  integer :: n_args, j
+  character*1024 :: cmd_string, junk
+  logical :: Lv_from_file = .true.
 
   PBC = .true.
+  Lv = 0.d0
 
-  read(*,*) filename, Lv(1:3), rmax, lmax, every, atoms_mode, trajectory_mode
+!  This was a shitty interface; I'm obsoleting it
+!  read(*,*) filename, Lv(1:3), rmax, lmax, every, atoms_mode, trajectory_mode
+
+!  This is more elegant :-D
+  n_args = command_argument_count()
+  do i = 1, n_args
+    call getarg(i, cmd_string)
+    write(cmd_string, '(A)') adjustl(cmd_string)
+    if( cmd_string(1:5) == "rmax=" )then
+      read(cmd_string(6:1024), *) rmax
+    else if( cmd_string(1:5) == "lmax=" )then
+      read(cmd_string(6:1024), *) lmax
+    else if( cmd_string(1:6) == "every=" )then
+      read(cmd_string(7:1024), *) every
+    else if( cmd_string(1:15) == "atoms_filename=" )then
+      read(cmd_string(16:1024), '(A)') filename
+      filename = adjustl(filename)
+    else if( cmd_string(1:11) == "atoms_mode=" )then
+      read(cmd_string(12:1024), '(A)') atoms_mode
+    else if( cmd_string(1:16) == "trajectory_mode=" )then
+      read(cmd_string(17:1024), '(A)') trajectory_mode
+    else if( cmd_string(1:4) == "box=" )then
+      read(cmd_string(5:1024), '(A)') cmd_string
+      read(cmd_string, *) Lv(1:3)
+      Lv_from_file = .false.
+    end if
+  end do
+
+! Checks
+  if( filename == "" )then
+    write(*,*) "ERROR: you need to specify an atoms_filename!"
+    stop
+  else if( rmax <= 0.d0 )then
+    write(*,*) "ERROR: you need to specify an rmax > 0!"
+    stop
+  else if( .not. atoms_mode == "all" .and. .not. atoms_mode == "each" )then
+    write(*,*) "ERROR: atoms_mode must be ""all"" or ""each"""
+    stop
+  else if( .not. trajectory_mode == "all" .and. .not. trajectory_mode == "each" )then
+    write(*,*) "ERROR: trajectory_mode must be ""all"" or ""each"""
+    stop
+  end if
 
   open(unit=10, file=filename, status="old", iostat=iostatus)
   image = 0
@@ -48,7 +93,22 @@ program get_steinhardt_ortho
       end if
       Qlsum = 0.d0
     end if
-    read(10, *)
+    read(10, '(A)') cmd_string
+    if( Lv_from_file )then
+      do i = 1, 1024-8
+        if( cmd_string(i:i+4) == "box=""" )then
+          do j = i+5, 1024
+            if( cmd_string(j:j) == """" )exit
+          end do
+          read(cmd_string(i+5:j-1), *) Lv(1:3)
+          exit
+        end if
+      end do
+    end if
+    if( any( Lv == 0.d0 ) )then
+      write(*,*) "ERROR: box size either zero or unspecified!"
+      stop
+    end if
     if( image == 1 )then
       allocate( pos(1:3, 1:Np) )
       allocate( nn(1:Np) )
