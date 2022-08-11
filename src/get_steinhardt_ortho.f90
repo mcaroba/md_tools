@@ -83,7 +83,7 @@ program get_steinhardt_ortho
     image = image + 1
     read(10, *) Np
 !   Allocate arrays
-    if( counter == 0 )then
+    if( counter == 0 .and. mod(image, every) == 0 )then
       if( atoms_mode == "all" )then
         allocate( Ql(0:lmax, 1) )
         allocate( Qlsum(0:lmax, 1) )
